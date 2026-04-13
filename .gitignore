@@ -1,0 +1,30 @@
+# Build output
+bin/
+obj/
+
+# Visual Studio / Rider
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.rsuser
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+project.nuget.cache
+packages/
+*.nuget.props
+*.nuget.targets
+
+# Logs & temp
+*.log
+*.tmp
+*.cache
+Thumbs.db
+Desktop.ini
+
+# Publish output
+publish/
