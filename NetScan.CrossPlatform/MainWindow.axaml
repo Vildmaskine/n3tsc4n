@@ -123,7 +123,6 @@
             <Setter Property="BorderBrush"              Value="#313244"/>
             <Setter Property="BorderThickness"          Value="0"/>
             <Setter Property="RowBackground"            Value="#1E1E2E"/>
-            <Setter Property="AlternatingRowBackground" Value="#252535"/>
             <Setter Property="HorizontalGridLinesBrush" Value="#313244"/>
             <Setter Property="VerticalGridLinesBrush"   Value="Transparent"/>
             <Setter Property="RowHeaderWidth"           Value="0"/>
@@ -141,6 +140,9 @@
         </Style>
         <Style Selector="DataGridRow">
             <Setter Property="Foreground" Value="#CDD6F4"/>
+        </Style>
+        <Style Selector="DataGridRow:nth-child(even)">
+            <Setter Property="Background" Value="#252535"/>
         </Style>
         <Style Selector="DataGridRow:selected">
             <Setter Property="Background" Value="#3D3F5A"/>
@@ -293,9 +295,6 @@
                   SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                   AutoGenerateColumns="False"
                   IsReadOnly="True"
-                  CanUserAddRows="False"
-                  CanUserDeleteRows="False"
-                  CanUserResizeRows="False"
                   CanUserSortColumns="True"
                   DoubleTapped="DGrid_DoubleTapped">
             <DataGrid.Columns>
