@@ -1,0 +1,160 @@
+name: Build NetScan
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Publish Windows
+        run: |
+          dotnet publish NetScan.Windows/NetScan.Windows.csproj `
+            -c Release `
+            -r win-x64 `
+            --self-contained true `
+            -p:PublishSingleFile=true `
+            -p:IncludeNativeLibrariesForSelfExtract=true `
+            -o publish/windows
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NetScan-windows
+          path: publish/windows/NetScan.exe
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Publish Linux
+        run: |
+          dotnet publish NetScan.CrossPlatform/NetScan.CrossPlatform.csproj \
+            -c Release \
+            -r linux-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/linux
+
+      - name: Install appimagetool
+        run: |
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Create AppDir
+        run: |
+          mkdir -p AppDir/usr/bin
+          cp publish/linux/NetScan AppDir/usr/bin/NetScan
+          chmod +x AppDir/usr/bin/NetScan
+
+          cat > AppDir/NetScan.desktop << 'EOF'
+          [Desktop Entry]
+          Name=NetScan
+          Exec=NetScan
+          Icon=NetScan
+          Type=Application
+          Categories=Network;
+          EOF
+
+          cp NetScan.CrossPlatform/Assets/icon.png AppDir/NetScan.png 2>/dev/null || \
+            wget -q -O AppDir/NetScan.png https://raw.githubusercontent.com/nicehash/NiceHashQuickMiner/master/icons/nhqm_256.png || \
+            touch AppDir/NetScan.png
+
+          ln -s usr/bin/NetScan AppDir/AppRun
+
+      - name: Build AppImage
+        run: ./appimagetool-x86_64.AppImage AppDir NetScan-x86_64.AppImage
+        env:
+          ARCH: x86_64
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NetScan-linux
+          path: NetScan-x86_64.AppImage
+
+  build-mac:
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        arch: [x64, arm64]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: ${{ runner.os }}-nuget-
+
+      - name: Publish macOS ${{ matrix.arch }}
+        run: |
+          dotnet publish NetScan.CrossPlatform/NetScan.CrossPlatform.csproj \
+            -c Release \
+            -r osx-${{ matrix.arch }} \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o publish/mac-${{ matrix.arch }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: NetScan-mac-${{ matrix.arch }}
+          path: publish/mac-${{ matrix.arch }}/NetScan
+
+  release:
+    needs: [build-windows, build-linux, build-mac]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          generate_release_notes: true
+          files: |
+            NetScan-windows/NetScan.exe
+            NetScan-linux/NetScan-x86_64.AppImage
+            NetScan-mac-x64/NetScan
+            NetScan-mac-arm64/NetScan

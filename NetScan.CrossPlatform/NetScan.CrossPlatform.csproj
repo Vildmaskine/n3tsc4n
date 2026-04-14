@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NetScan</AssemblyName>
+    <RootNamespace>NetScan.CrossPlatform</RootNamespace>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Release'">
+    <DebugType>none</DebugType>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia"                    Version="11.2.5"/>
+    <PackageReference Include="Avalonia.Desktop"            Version="11.2.5"/>
+    <PackageReference Include="Avalonia.Themes.Fluent"      Version="11.2.5"/>
+    <PackageReference Include="Avalonia.Controls.DataGrid"  Version="11.2.5"/>
+    <PackageReference Include="Avalonia.Fonts.Inter"        Version="11.2.5"/>
+    <PackageReference Include="CommunityToolkit.Mvvm"       Version="8.3.2"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NetScan.Core\NetScan.Core.csproj"/>
+  </ItemGroup>
+</Project>

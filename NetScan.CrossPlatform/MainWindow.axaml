@@ -1,0 +1,334 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:NetScan.CrossPlatform.ViewModels"
+        x:Class="NetScan.CrossPlatform.MainWindow"
+        x:DataType="vm:MainViewModel"
+        Title="N3tSc4n"
+        Width="1150" Height="680"
+        MinWidth="700" MinHeight="400"
+        Background="#1E1E2E"
+        Foreground="#CDD6F4"
+        FontFamily="Inter,Segoe UI,sans-serif"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        WindowStartupLocation="CenterScreen">
+
+    <Window.Styles>
+
+        <!-- ── Buttons ──────────────────────────────────────────── -->
+        <Style Selector="Button.dark">
+            <Setter Property="Background"       Value="#313244"/>
+            <Setter Property="Foreground"       Value="#CDD6F4"/>
+            <Setter Property="BorderBrush"      Value="#585B70"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="12,0"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="CornerRadius"     Value="4"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+        </Style>
+        <Style Selector="Button.dark:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#45475A"/>
+        </Style>
+        <Style Selector="Button.dark:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#585B70"/>
+        </Style>
+        <Style Selector="Button.dark:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+
+        <Style Selector="Button.accent">
+            <Setter Property="Background"       Value="#89B4FA"/>
+            <Setter Property="Foreground"       Value="#1E1E2E"/>
+            <Setter Property="BorderBrush"      Value="#89B4FA"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="12,0"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="FontWeight"       Value="SemiBold"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="CornerRadius"     Value="4"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+        </Style>
+        <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#B4D0FB"/>
+        </Style>
+        <Style Selector="Button.accent:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#6A95D8"/>
+        </Style>
+
+        <Style Selector="Button.stop">
+            <Setter Property="Background"       Value="#F38BA8"/>
+            <Setter Property="Foreground"       Value="#1E1E2E"/>
+            <Setter Property="BorderBrush"      Value="#F38BA8"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="Padding"          Value="12,0"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="FontWeight"       Value="SemiBold"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="CornerRadius"     Value="4"/>
+            <Setter Property="Cursor"           Value="Hand"/>
+        </Style>
+        <Style Selector="Button.stop:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F7A8BE"/>
+        </Style>
+        <Style Selector="Button.stop:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#D06A85"/>
+        </Style>
+        <Style Selector="Button.stop:disabled /template/ ContentPresenter">
+            <Setter Property="Opacity" Value="0.35"/>
+        </Style>
+
+        <!-- ── Caption buttons ──────────────────────────────────── -->
+        <Style Selector="Button.caption">
+            <Setter Property="Width"            Value="28"/>
+            <Setter Property="Height"           Value="28"/>
+            <Setter Property="Background"       Value="Transparent"/>
+            <Setter Property="BorderBrush"      Value="#585B70"/>
+            <Setter Property="BorderThickness"  Value="1.5"/>
+            <Setter Property="CornerRadius"     Value="14"/>
+            <Setter Property="Padding"          Value="0"/>
+            <Setter Property="Cursor"           Value="Arrow"/>
+        </Style>
+        <Style Selector="Button.caption:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#3A3A4E"/>
+        </Style>
+        <Style Selector="Button.caption:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#2A2A3E"/>
+        </Style>
+        <Style Selector="Button.close:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#C42B1C"/>
+        </Style>
+
+        <!-- ── TextBox ──────────────────────────────────────────── -->
+        <Style Selector="TextBox">
+            <Setter Property="Background"       Value="#1E1E2E"/>
+            <Setter Property="Foreground"       Value="#CDD6F4"/>
+            <Setter Property="BorderBrush"      Value="#585B70"/>
+            <Setter Property="BorderThickness"  Value="1"/>
+            <Setter Property="FontSize"         Value="13"/>
+            <Setter Property="Height"           Value="30"/>
+            <Setter Property="CornerRadius"     Value="4"/>
+            <Setter Property="Padding"          Value="8,0"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+        </Style>
+        <Style Selector="TextBox:focus">
+            <Setter Property="BorderBrush" Value="#89B4FA"/>
+        </Style>
+
+        <!-- ── DataGrid ─────────────────────────────────────────── -->
+        <Style Selector="DataGrid">
+            <Setter Property="Background"               Value="#1E1E2E"/>
+            <Setter Property="Foreground"               Value="#CDD6F4"/>
+            <Setter Property="BorderBrush"              Value="#313244"/>
+            <Setter Property="BorderThickness"          Value="0"/>
+            <Setter Property="RowBackground"            Value="#1E1E2E"/>
+            <Setter Property="AlternatingRowBackground" Value="#252535"/>
+            <Setter Property="HorizontalGridLinesBrush" Value="#313244"/>
+            <Setter Property="VerticalGridLinesBrush"   Value="Transparent"/>
+            <Setter Property="RowHeaderWidth"           Value="0"/>
+            <Setter Property="SelectionMode"            Value="Single"/>
+            <Setter Property="GridLinesVisibility"      Value="Horizontal"/>
+        </Style>
+        <Style Selector="DataGridColumnHeader">
+            <Setter Property="Background"       Value="#252535"/>
+            <Setter Property="Foreground"       Value="#89B4FA"/>
+            <Setter Property="FontWeight"       Value="SemiBold"/>
+            <Setter Property="FontSize"         Value="12"/>
+            <Setter Property="Padding"          Value="10,6"/>
+            <Setter Property="BorderBrush"      Value="#313244"/>
+            <Setter Property="BorderThickness"  Value="0,0,1,1"/>
+        </Style>
+        <Style Selector="DataGridRow">
+            <Setter Property="Foreground" Value="#CDD6F4"/>
+        </Style>
+        <Style Selector="DataGridRow:selected">
+            <Setter Property="Background" Value="#3D3F5A"/>
+        </Style>
+        <Style Selector="DataGridRow:pointerover /template/ Rectangle#BackgroundRectangle">
+            <Setter Property="Fill" Value="#2A2A3E"/>
+        </Style>
+        <Style Selector="DataGridCell">
+            <Setter Property="Padding"          Value="10,5"/>
+            <Setter Property="BorderThickness"  Value="0"/>
+        </Style>
+
+    </Window.Styles>
+
+    <Grid RowDefinitions="38,Auto,5,*,Auto">
+
+        <!-- ══ Row 0: Title bar ══════════════════════════════════ -->
+        <Grid Grid.Row="0" Background="#181825"
+              PointerPressed="TitleBar_PointerPressed">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Logo + title -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal"
+                        VerticalAlignment="Center" Margin="12,0,0,0"
+                        IsHitTestVisible="False">
+                <Viewbox Width="18" Height="18" Margin="0,0,8,0">
+                    <Canvas Width="22" Height="22">
+                        <Ellipse Canvas.Left="3" Canvas.Top="9" Width="4" Height="4" Fill="#89B4FA"/>
+                        <Path Data="M 5,6 A 5,5 0 0 1 5,16"
+                              Stroke="#89B4FA" StrokeThickness="1.8"/>
+                        <Path Data="M 5,3 A 8,8 0 0 1 5,19"
+                              Stroke="#89B4FA" StrokeThickness="1.8" Opacity="0.6"/>
+                        <Path Data="M 5,0 A 11,11 0 0 1 5,22"
+                              Stroke="#89B4FA" StrokeThickness="1.8" Opacity="0.3"/>
+                    </Canvas>
+                </Viewbox>
+                <TextBlock Text="N3tSc4n"
+                           Foreground="#CDD6F4"
+                           FontFamily="Consolas,monospace"
+                           FontSize="14"
+                           FontWeight="SemiBold"
+                           VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- Window control buttons -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal"
+                        VerticalAlignment="Center" Margin="0,0,10,0" Spacing="8">
+                <Button x:Name="BtnMinimize" Classes="caption"
+                        ToolTip.Tip="Minimer"
+                        Click="BtnMinimize_Click">
+                    <Line StartPoint="5,10" EndPoint="15,10"
+                          Stroke="#909090" StrokeThickness="1.5"
+                          StrokeLineCap="Round"/>
+                </Button>
+                <Button x:Name="BtnMaximize" Classes="caption"
+                        ToolTip.Tip="Maksimer"
+                        Click="BtnMaximize_Click">
+                    <Path x:Name="MaximizeIcon"
+                          Data="M 1,1 L 11,1 L 11,11 L 1,11 Z"
+                          Stroke="#909090" StrokeThickness="1.5"/>
+                </Button>
+                <Button x:Name="BtnClose" Classes="caption close"
+                        ToolTip.Tip="Luk"
+                        Click="BtnClose_Click">
+                    <Path Data="M 5,5 L 15,15 M 5,15 L 15,5"
+                          Stroke="#909090" StrokeThickness="1.5"
+                          StrokeLineCap="Round"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!-- ══ Row 1: Toolbar ════════════════════════════════════ -->
+        <Border Grid.Row="1" Background="#313244" Padding="12,8">
+            <DockPanel>
+                <!-- Left: subnet + scan controls -->
+                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal"
+                            VerticalAlignment="Center" Spacing="6">
+                    <TextBlock Text="Subnet:"
+                               Foreground="#CDD6F4"
+                               FontSize="13"
+                               VerticalAlignment="Center"/>
+                    <TextBox x:Name="SubnetBox"
+                             Width="185"
+                             FontFamily="Consolas,monospace"
+                             Text="{Binding SubnetText}"/>
+                    <TextBlock Text=".0/24"
+                               Foreground="#585B70"
+                               FontSize="13"
+                               FontFamily="Consolas,monospace"
+                               VerticalAlignment="Center"/>
+                    <TextBlock Text="⚠"
+                               Foreground="#F9E2AF"
+                               FontSize="14"
+                               VerticalAlignment="Center"
+                               Cursor="Help"
+                               IsVisible="{Binding ShowSubnetWarning}"
+                               ToolTip.Tip="Andet subnet end dit eget — MAC/vendor utilgængeligt (ARP kun i eget segment). Ping, porte og hostname fungerer stadig."/>
+                    <Button Content="▶  Scan"
+                            Classes="accent"
+                            Width="90"
+                            Command="{Binding ScanCommand}"/>
+                    <Button Content="■  Stop"
+                            Classes="stop"
+                            Width="80"
+                            Command="{Binding StopCommand}"/>
+                </StackPanel>
+
+                <!-- Right: action buttons -->
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal"
+                            VerticalAlignment="Center" Spacing="6">
+                    <Button Content="🌐  Web"
+                            Classes="dark"
+                            Command="{Binding OpenWebCommand}"/>
+                    <Button Content="🖥  RDP"
+                            Classes="dark"
+                            Command="{Binding OpenRdpCommand}"/>
+                    <Button Content="📋  IP"
+                            Classes="dark"
+                            Command="{Binding CopyIpCommand}"/>
+                </StackPanel>
+
+                <!-- Centre: status -->
+                <TextBlock Text="{Binding StatusText}"
+                           Foreground="#585B70"
+                           FontSize="12"
+                           VerticalAlignment="Center"
+                           HorizontalAlignment="Center"
+                           TextTrimming="CharacterEllipsis"
+                           Margin="16,0"/>
+            </DockPanel>
+        </Border>
+
+        <!-- ══ Row 2: Progress bar ══════════════════════════════ -->
+        <ProgressBar Grid.Row="2"
+                     Minimum="0"
+                     Maximum="{Binding ProgressMaximum}"
+                     Value="{Binding ProgressValue}"
+                     IsIndeterminate="{Binding IsProgressIndeterminate}"
+                     Foreground="#89B4FA"
+                     Background="#252535"
+                     BorderThickness="0"/>
+
+        <!-- ══ Row 3: DataGrid ══════════════════════════════════ -->
+        <DataGrid Grid.Row="3"
+                  x:Name="DGrid"
+                  ItemsSource="{Binding Results}"
+                  SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  CanUserResizeRows="False"
+                  CanUserSortColumns="True"
+                  DoubleTapped="DGrid_DoubleTapped">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="IP"
+                                    Binding="{Binding IP}"
+                                    Width="130"
+                                    SortMemberPath="IpSortKey"
+                                    FontFamily="Consolas,monospace"/>
+                <DataGridTextColumn Header="Hostname"
+                                    Binding="{Binding Hostname}"
+                                    Width="200"/>
+                <DataGridTextColumn Header="MAC"
+                                    Binding="{Binding MAC}"
+                                    Width="145"
+                                    FontFamily="Consolas,monospace"/>
+                <DataGridTextColumn Header="Vendor"
+                                    Binding="{Binding Vendor}"
+                                    Width="180"/>
+                <DataGridTextColumn Header="Ports"
+                                    Binding="{Binding Ports}"
+                                    Width="*"
+                                    FontFamily="Consolas,monospace"
+                                    FontSize="11"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <!-- ══ Row 4: Footer ════════════════════════════════════ -->
+        <Border Grid.Row="4" Background="#181825" Padding="12,5">
+            <TextBlock Text="Dobbeltklik → åbn web"
+                       Foreground="#585B70"
+                       FontSize="11"
+                       HorizontalAlignment="Center"/>
+        </Border>
+
+    </Grid>
+</Window>

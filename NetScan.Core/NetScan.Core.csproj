@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AssemblyName>NetScan.Core</AssemblyName>
+    <RootNamespace>NetScan.Core</RootNamespace>
+  </PropertyGroup>
+</Project>
