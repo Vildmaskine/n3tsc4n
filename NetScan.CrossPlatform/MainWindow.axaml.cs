@@ -1,3 +1,4 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -13,6 +14,7 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new MainViewModel();
+        this.GetObservable(WindowStateProperty).Subscribe(_ => UpdateMaximizeIcon());
     }
 
     private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
@@ -34,12 +36,6 @@ public partial class MainWindow : Window
 
     private void BtnClose_Click(object? sender, RoutedEventArgs e) =>
         Close();
-
-    protected override void OnWindowStateChanged(WindowState state)
-    {
-        base.OnWindowStateChanged(state);
-        UpdateMaximizeIcon();
-    }
 
     private void UpdateMaximizeIcon()
     {
