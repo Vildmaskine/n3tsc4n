@@ -1,4 +1,3 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -14,7 +13,11 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new MainViewModel();
-        this.GetObservable(WindowStateProperty).Subscribe(_ => UpdateMaximizeIcon());
+        this.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == WindowStateProperty)
+                UpdateMaximizeIcon();
+        };
     }
 
     private void TitleBar_PointerPressed(object? sender, PointerPressedEventArgs e)
