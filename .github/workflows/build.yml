@@ -124,7 +124,7 @@ jobs:
           key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
           restore-keys: ${{ runner.os }}-nuget-
 
-      - name: Publish macOS ${{ matrix.arch }}
+      - name: Publish macOS
         run: |
           dotnet publish NetScan.CrossPlatform/NetScan.CrossPlatform.csproj \
             -c Release \
@@ -133,11 +133,51 @@ jobs:
             -p:PublishSingleFile=true \
             -o publish/mac-${{ matrix.arch }}
 
+      - name: Create .app bundle
+        run: |
+          APP="NetScan-${{ matrix.arch }}.app"
+          mkdir -p "$APP/Contents/MacOS"
+          mkdir -p "$APP/Contents/Resources"
+
+          cp "publish/mac-${{ matrix.arch }}/NetScan" "$APP/Contents/MacOS/NetScan"
+          chmod +x "$APP/Contents/MacOS/NetScan"
+
+          cp NetScan.CrossPlatform/Assets/icon.png "$APP/Contents/Resources/NetScan.png" 2>/dev/null || true
+
+          cat > "$APP/Contents/Info.plist" << PLIST
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>CFBundleName</key>
+            <string>NetScan</string>
+            <key>CFBundleDisplayName</key>
+            <string>NetScan</string>
+            <key>CFBundleIdentifier</key>
+            <string>dk.itagil.netscan</string>
+            <key>CFBundleVersion</key>
+            <string>${{ github.ref_name }}</string>
+            <key>CFBundleShortVersionString</key>
+            <string>${{ github.ref_name }}</string>
+            <key>CFBundleExecutable</key>
+            <string>NetScan</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleIconFile</key>
+            <string>NetScan</string>
+            <key>NSHighResolutionCapable</key>
+            <true/>
+          </dict>
+          </plist>
+          PLIST
+
+          zip -r "NetScan-${{ matrix.arch }}.app.zip" "$APP"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: NetScan-mac-${{ matrix.arch }}
-          path: publish/mac-${{ matrix.arch }}/NetScan
+          path: NetScan-${{ matrix.arch }}.app.zip
 
   release:
     needs: [build-windows, build-linux, build-mac]
@@ -157,5 +197,5 @@ jobs:
           files: |
             NetScan-windows/NetScan.exe
             NetScan-linux/NetScan-x86_64.AppImage
-            NetScan-mac-x64/NetScan
-            NetScan-mac-arm64/NetScan
+            NetScan-mac-x64/NetScan-x64.app.zip
+            NetScan-mac-arm64/NetScan-arm64.app.zip
