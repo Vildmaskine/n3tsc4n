@@ -68,7 +68,7 @@ jobs:
 
       - name: Install appimagetool
         run: |
-          sudo apt-get install -y libfuse2
+          sudo apt-get install -y libfuse2 imagemagick
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
 
@@ -87,9 +87,7 @@ jobs:
           Categories=Network;
           EOF
 
-          cp NetScan.CrossPlatform/Assets/icon.png AppDir/NetScan.png 2>/dev/null || \
-            wget -q -O AppDir/NetScan.png https://raw.githubusercontent.com/nicehash/NiceHashQuickMiner/master/icons/nhqm_256.png || \
-            touch AppDir/NetScan.png
+          convert app.ico -resize 256x256 AppDir/NetScan.png
 
           ln -s usr/bin/NetScan AppDir/AppRun
 
@@ -142,7 +140,7 @@ jobs:
           cp "publish/mac-${{ matrix.arch }}/NetScan" "$APP/Contents/MacOS/NetScan"
           chmod +x "$APP/Contents/MacOS/NetScan"
 
-          cp NetScan.CrossPlatform/Assets/icon.png "$APP/Contents/Resources/NetScan.png" 2>/dev/null || true
+          sips -s format png app.ico --out "$APP/Contents/Resources/NetScan.png" 2>/dev/null || true
 
           cat > "$APP/Contents/Info.plist" << PLIST
           <?xml version="1.0" encoding="UTF-8"?>

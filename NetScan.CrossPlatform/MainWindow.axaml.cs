@@ -22,7 +22,11 @@ public partial class MainWindow : Window
         if (!OperatingSystem.IsWindows())
             SystemDecorations = SystemDecorations.BorderOnly;
 
-        Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://NetScan.CrossPlatform/app.ico")));
+        try
+        {
+            Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://NetScan/app.ico")));
+        }
+        catch { }
 
         this.PropertyChanged += (_, e) =>
         {
