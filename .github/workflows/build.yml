@@ -68,7 +68,7 @@ jobs:
 
       - name: Install appimagetool
         run: |
-          sudo apt-get install -y libfuse2 imagemagick
+          sudo apt-get install -y libfuse2 python3-pil
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
 
@@ -87,7 +87,7 @@ jobs:
           Categories=Network;
           EOF
 
-          convert app.ico -resize 256x256 AppDir/NetScan.png
+          python3 -c "from PIL import Image; Image.open('app.ico').save('AppDir/NetScan.png')"
 
           ln -s usr/bin/NetScan AppDir/AppRun
 
