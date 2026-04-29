@@ -17,8 +17,8 @@ public class OuiLookup
 
         if (needsDownload)
         {
-            var reason = !File.Exists(DbPath) ? "ikke fundet" : "forældet (>30 dage)";
-            progress?.Report($"OUI-database {reason} — downloader...");
+            var reason = !File.Exists(DbPath) ? "not found" : "outdated (>30 days)";
+            progress?.Report($"OUI database {reason} — downloading...");
             try
             {
                 using var client = new HttpClient();
@@ -26,26 +26,26 @@ public class OuiLookup
                 var bytes = await client.GetByteArrayAsync("https://standards-oui.ieee.org/oui/oui.csv");
                 Directory.CreateDirectory(DataDir);
                 await File.WriteAllBytesAsync(DbPath, bytes);
-                progress?.Report("OUI-database hentet — indlæser...");
+                progress?.Report("OUI database downloaded — loading...");
             }
             catch
             {
-                progress?.Report("Download fejlede — bruger evt. gammel database");
+                progress?.Report("Download failed — using existing database if available");
             }
         }
         else
         {
-            progress?.Report("Indlæser OUI-database...");
+            progress?.Report("Loading OUI database...");
         }
 
         if (File.Exists(DbPath))
         {
             ParseOuiFile();
-            progress?.Report($"Klar — {_table.Count:N0} producenter indlæst");
+            progress?.Report($"Ready — {_table.Count:N0} vendors loaded");
         }
         else
         {
-            progress?.Report("Klar (ingen OUI-database)");
+            progress?.Report("Ready (no OUI database)");
         }
     }
 

@@ -230,7 +230,8 @@ public partial class ScanEngine
         return table;
     }
 
-    [GeneratedRegex(@"(?<ip>\d{1,3}(?:\.\d{1,3}){3})\s+(?<mac>[0-9a-fA-F]{2}(?:[:-][0-9a-fA-F]{2}){5})", RegexOptions.Multiline)]
+    // Handles both Windows ("IP  MAC") and Linux ("hostname (IP) at MAC") ARP formats
+    [GeneratedRegex(@"(?<ip>\d{1,3}(?:\.\d{1,3}){3}).*?(?<mac>[0-9a-fA-F]{2}(?:[:-][0-9a-fA-F]{2}){5})", RegexOptions.Multiline)]
     private static partial Regex ArpLineRegex();
 
     public static string GetDefaultSubnet()

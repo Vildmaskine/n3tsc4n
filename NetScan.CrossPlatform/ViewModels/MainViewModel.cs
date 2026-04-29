@@ -79,7 +79,7 @@ public partial class MainViewModel : ObservableObject
         }
         catch
         {
-            StatusText = "Klar (OUI ikke tilgængelig)";
+            StatusText = "Ready (OUI unavailable)";
         }
     }
 
@@ -97,7 +97,7 @@ public partial class MainViewModel : ObservableObject
         var subnet = SubnetText.Trim();
         if (!SubnetRegex.IsMatch(subnet))
         {
-            StatusText = "Ugyldigt subnet!";
+            StatusText = "Invalid subnet!";
             return;
         }
 
@@ -112,7 +112,7 @@ public partial class MainViewModel : ObservableObject
         IsProgressIndeterminate = false;
         ProgressMaximum = 254;
         ProgressValue = 0;
-        StatusText = $"Scanner {subnet}.0/24...";
+        StatusText = $"Scanning {subnet}.0/24...";
 
         // Progress<int> captures the UI SynchronizationContext here (on UI thread)
         var progress = new Progress<int>(v => ProgressValue = v);
@@ -131,7 +131,7 @@ public partial class MainViewModel : ObservableObject
                     await Dispatcher.UIThread.InvokeAsync(() =>
                     {
                         InsertSorted(captured);
-                        StatusText = $"Fundet: {found} enhed(er)...";
+                        StatusText = $"Found: {found} device(s)...";
 
                         if (ProgressValue >= 254 && !IsProgressIndeterminate)
                             IsProgressIndeterminate = true;
@@ -143,7 +143,7 @@ public partial class MainViewModel : ObservableObject
             {
                 IsProgressIndeterminate = false;
                 ProgressValue = ProgressMaximum;
-                StatusText = $"Færdig \u2014 {found} enhed(er)";
+                StatusText = $"Done — {found} device(s)";
             });
         }
         catch (OperationCanceledException)
@@ -152,7 +152,7 @@ public partial class MainViewModel : ObservableObject
             {
                 IsProgressIndeterminate = false;
                 ProgressValue = 0;
-                StatusText = "Stoppet";
+                StatusText = "Stopped";
             });
         }
         catch (Exception ex)
@@ -161,7 +161,7 @@ public partial class MainViewModel : ObservableObject
             {
                 IsProgressIndeterminate = false;
                 ProgressValue = 0;
-                StatusText = $"Fejl: {ex.Message}";
+                StatusText = $"Error: {ex.Message}";
             });
         }
         finally
@@ -222,7 +222,7 @@ public partial class MainViewModel : ObservableObject
         if (clipboard != null)
         {
             await clipboard.SetTextAsync(r.IP);
-            StatusText = "Kopieret!";
+            StatusText = "Copied!";
         }
     }
 
@@ -253,11 +253,11 @@ public partial class MainViewModel : ObservableObject
             await using var stream = await file.OpenWriteAsync();
             await using var writer = new System.IO.StreamWriter(stream, System.Text.Encoding.UTF8);
             await writer.WriteAsync(html);
-            StatusText = "Eksporteret!";
+            StatusText = "Exported!";
         }
         catch (Exception ex)
         {
-            StatusText = $"Eksport fejlede: {ex.Message}";
+            StatusText = $"Export failed: {ex.Message}";
         }
     }
 

@@ -200,13 +200,13 @@
             <StackPanel Grid.Column="1" Orientation="Horizontal"
                         VerticalAlignment="Center" Margin="0,0,10,0" Spacing="8">
                 <Button x:Name="BtnMinimize" Classes="caption"
-                        ToolTip.Tip="Minimer"
+                        ToolTip.Tip="Minimize"
                         Click="BtnMinimize_Click">
                     <Rectangle Width="10" Height="1.5" Fill="#909090" RadiusX="1" RadiusY="1"
                                HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="BtnMaximize" Classes="caption"
-                        ToolTip.Tip="Maksimer"
+                        ToolTip.Tip="Maximize"
                         Click="BtnMaximize_Click">
                     <Path x:Name="MaximizeIcon"
                           Data="M 0,0 L 10,0 L 10,10 L 0,10 Z"
@@ -214,7 +214,7 @@
                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="BtnClose" Classes="caption close"
-                        ToolTip.Tip="Luk"
+                        ToolTip.Tip="Close"
                         Click="BtnClose_Click">
                     <Path Data="M 0,0 L 10,10 M 0,10 L 10,0"
                           Stroke="#909090" StrokeThickness="1.5"
@@ -249,7 +249,7 @@
                                VerticalAlignment="Center"
                                Cursor="Help"
                                IsVisible="{Binding ShowSubnetWarning}"
-                               ToolTip.Tip="Andet subnet end dit eget — MAC/vendor utilgængeligt (ARP kun i eget segment). Ping, porte og hostname fungerer stadig."/>
+                               ToolTip.Tip="Different subnet than your own — MAC/vendor unavailable (ARP only within own segment). Ping, ports and hostname still work."/>
                     <Button Content="▶  Scan"
                             Classes="accent"
                             Width="90"
@@ -272,14 +272,14 @@
                     <Button Content="🗂  SMB"
                             Classes="dark"
                             Command="{Binding OpenSmbCommand}"
-                            ToolTip.Tip="Åbn SMB-deling i filhåndtering"/>
+                            ToolTip.Tip="Open SMB share in file manager"/>
                     <Button Content="📋  IP"
                             Classes="dark"
                             Command="{Binding CopyIpCommand}"/>
-                    <Button Content="💾  Eksport"
+                    <Button Content="💾  Export"
                             Classes="dark"
                             Command="{Binding ExportHtmlCommand}"
-                            ToolTip.Tip="Gem scan som HTML"/>
+                            ToolTip.Tip="Save scan as HTML"/>
                 </StackPanel>
 
                 <!-- Centre: status -->
@@ -338,7 +338,7 @@
 
         <!-- ══ Row 4: Footer ════════════════════════════════════ -->
         <Border Grid.Row="4" Background="#181825" Padding="12,5">
-            <TextBlock Text="Dobbeltklik → åbn web"
+            <TextBlock Text="Double-click → open web"
                        Foreground="#585B70"
                        FontSize="11"
                        HorizontalAlignment="Center"/>
