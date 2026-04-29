@@ -18,15 +18,17 @@
 
         <!-- ── Buttons ──────────────────────────────────────────── -->
         <Style Selector="Button.dark">
-            <Setter Property="Background"       Value="#313244"/>
-            <Setter Property="Foreground"       Value="#CDD6F4"/>
-            <Setter Property="BorderBrush"      Value="#585B70"/>
-            <Setter Property="BorderThickness"  Value="1"/>
-            <Setter Property="Padding"          Value="12,0"/>
-            <Setter Property="FontSize"         Value="13"/>
-            <Setter Property="Height"           Value="30"/>
-            <Setter Property="CornerRadius"     Value="4"/>
-            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Background"               Value="#313244"/>
+            <Setter Property="Foreground"               Value="#CDD6F4"/>
+            <Setter Property="BorderBrush"              Value="#585B70"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="Padding"                  Value="12,0"/>
+            <Setter Property="FontSize"                 Value="13"/>
+            <Setter Property="Height"                   Value="30"/>
+            <Setter Property="CornerRadius"             Value="4"/>
+            <Setter Property="Cursor"                   Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment"   Value="Center"/>
         </Style>
         <Style Selector="Button.dark:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#45475A"/>
@@ -39,16 +41,18 @@
         </Style>
 
         <Style Selector="Button.accent">
-            <Setter Property="Background"       Value="#89B4FA"/>
-            <Setter Property="Foreground"       Value="#1E1E2E"/>
-            <Setter Property="BorderBrush"      Value="#89B4FA"/>
-            <Setter Property="BorderThickness"  Value="1"/>
-            <Setter Property="Padding"          Value="12,0"/>
-            <Setter Property="FontSize"         Value="13"/>
-            <Setter Property="FontWeight"       Value="SemiBold"/>
-            <Setter Property="Height"           Value="30"/>
-            <Setter Property="CornerRadius"     Value="4"/>
-            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Background"               Value="#89B4FA"/>
+            <Setter Property="Foreground"               Value="#1E1E2E"/>
+            <Setter Property="BorderBrush"              Value="#89B4FA"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="Padding"                  Value="12,0"/>
+            <Setter Property="FontSize"                 Value="13"/>
+            <Setter Property="FontWeight"               Value="SemiBold"/>
+            <Setter Property="Height"                   Value="30"/>
+            <Setter Property="CornerRadius"             Value="4"/>
+            <Setter Property="Cursor"                   Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment"   Value="Center"/>
         </Style>
         <Style Selector="Button.accent:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#B4D0FB"/>
@@ -58,16 +62,18 @@
         </Style>
 
         <Style Selector="Button.stop">
-            <Setter Property="Background"       Value="#F38BA8"/>
-            <Setter Property="Foreground"       Value="#1E1E2E"/>
-            <Setter Property="BorderBrush"      Value="#F38BA8"/>
-            <Setter Property="BorderThickness"  Value="1"/>
-            <Setter Property="Padding"          Value="12,0"/>
-            <Setter Property="FontSize"         Value="13"/>
-            <Setter Property="FontWeight"       Value="SemiBold"/>
-            <Setter Property="Height"           Value="30"/>
-            <Setter Property="CornerRadius"     Value="4"/>
-            <Setter Property="Cursor"           Value="Hand"/>
+            <Setter Property="Background"               Value="#F38BA8"/>
+            <Setter Property="Foreground"               Value="#1E1E2E"/>
+            <Setter Property="BorderBrush"              Value="#F38BA8"/>
+            <Setter Property="BorderThickness"          Value="1"/>
+            <Setter Property="Padding"                  Value="12,0"/>
+            <Setter Property="FontSize"                 Value="13"/>
+            <Setter Property="FontWeight"               Value="SemiBold"/>
+            <Setter Property="Height"                   Value="30"/>
+            <Setter Property="CornerRadius"             Value="4"/>
+            <Setter Property="Cursor"                   Value="Hand"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="VerticalContentAlignment"   Value="Center"/>
         </Style>
         <Style Selector="Button.stop:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#F7A8BE"/>
@@ -196,23 +202,24 @@
                 <Button x:Name="BtnMinimize" Classes="caption"
                         ToolTip.Tip="Minimer"
                         Click="BtnMinimize_Click">
-                    <Line StartPoint="5,10" EndPoint="15,10"
-                          Stroke="#909090" StrokeThickness="1.5"
-                          StrokeLineCap="Round"/>
+                    <Rectangle Width="10" Height="1.5" Fill="#909090" RadiusX="1" RadiusY="1"
+                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="BtnMaximize" Classes="caption"
                         ToolTip.Tip="Maksimer"
                         Click="BtnMaximize_Click">
                     <Path x:Name="MaximizeIcon"
-                          Data="M 1,1 L 11,1 L 11,11 L 1,11 Z"
-                          Stroke="#909090" StrokeThickness="1.5"/>
+                          Data="M 0,0 L 10,0 L 10,10 L 0,10 Z"
+                          Stroke="#909090" StrokeThickness="1.5"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
                 <Button x:Name="BtnClose" Classes="caption close"
                         ToolTip.Tip="Luk"
                         Click="BtnClose_Click">
-                    <Path Data="M 5,5 L 15,15 M 5,15 L 15,5"
+                    <Path Data="M 0,0 L 10,10 M 0,10 L 10,0"
                           Stroke="#909090" StrokeThickness="1.5"
-                          StrokeLineCap="Round"/>
+                          StrokeLineCap="Round"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Button>
             </StackPanel>
         </Grid>
@@ -262,9 +269,17 @@
                     <Button Content="🖥  RDP"
                             Classes="dark"
                             Command="{Binding OpenRdpCommand}"/>
+                    <Button Content="🗂  SMB"
+                            Classes="dark"
+                            Command="{Binding OpenSmbCommand}"
+                            ToolTip.Tip="Åbn SMB-deling i filhåndtering"/>
                     <Button Content="📋  IP"
                             Classes="dark"
                             Command="{Binding CopyIpCommand}"/>
+                    <Button Content="💾  Eksport"
+                            Classes="dark"
+                            Command="{Binding ExportHtmlCommand}"
+                            ToolTip.Tip="Gem scan som HTML"/>
                 </StackPanel>
 
                 <!-- Centre: status -->

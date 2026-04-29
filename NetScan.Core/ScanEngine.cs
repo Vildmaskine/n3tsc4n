@@ -142,8 +142,9 @@ public partial class ScanEngine
         openPorts.Sort((a, b) => a.port.CompareTo(b.port));
         result.Ports = string.Join(", ", openPorts.Select(p => $"{p.port}/{p.name}"));
 
-        // HasRDP
+        // HasRDP / HasSMB
         result.HasRDP = openPorts.Any(p => p.port == 3389);
+        result.HasSMB = openPorts.Any(p => p.port == 445 || p.port == 139);
 
         // HasWeb and WebUrl
         var webPort = openPorts.FirstOrDefault(p => WebPorts.Contains(p.port));

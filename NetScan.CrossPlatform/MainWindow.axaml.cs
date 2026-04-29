@@ -1,6 +1,8 @@
+using System;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform;
 using NetScan.CrossPlatform.ViewModels;
 
 namespace NetScan.CrossPlatform;
@@ -13,6 +15,15 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         DataContext = new MainViewModel();
+
+        // X11 window managers often ignore ExtendClientAreaChromeHints.NoChrome,
+        // causing a double title bar. BorderOnly removes the system titlebar reliably
+        // on Linux and macOS while keeping the resize border.
+        if (!OperatingSystem.IsWindows())
+            SystemDecorations = SystemDecorations.BorderOnly;
+
+        Icon = new WindowIcon(AssetLoader.Open(new Uri("avares://NetScan.CrossPlatform/app.ico")));
+
         this.PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty)
@@ -43,11 +54,10 @@ public partial class MainWindow : Window
     private void UpdateMaximizeIcon()
     {
         if (MaximizeIcon == null) return;
-        // Restore icon when maximized, maximize icon when normal
         MaximizeIcon.Data = Avalonia.Media.Geometry.Parse(
             WindowState == WindowState.Maximized
-                ? "M 3,0 L 11,0 L 11,8 L 3,8 Z M 0,3 L 8,3 L 8,11 L 0,11 Z"
-                : "M 1,1 L 11,1 L 11,11 L 1,11 Z");
+                ? "M 2,0 L 10,0 L 10,8 L 2,8 Z M 0,2 L 8,2 L 8,10 L 0,10 Z"
+                : "M 0,0 L 10,0 L 10,10 L 0,10 Z");
     }
 
     private void DGrid_DoubleTapped(object? sender, TappedEventArgs e)

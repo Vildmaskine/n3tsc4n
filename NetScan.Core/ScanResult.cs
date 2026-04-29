@@ -12,6 +12,7 @@ public class ScanResult : INotifyPropertyChanged
     private string _ports = string.Empty;
     private bool _hasWeb;
     private bool _hasRDP;
+    private bool _hasSMB;
     private string _webUrl = string.Empty;
 
     public string IP
@@ -54,6 +55,12 @@ public class ScanResult : INotifyPropertyChanged
     {
         get => _hasRDP;
         set { _hasRDP = value; OnPropertyChanged(); }
+    }
+
+    public bool HasSMB
+    {
+        get => _hasSMB;
+        set { _hasSMB = value; OnPropertyChanged(); }
     }
 
     public string WebUrl

@@ -41,11 +41,16 @@ public partial class MainViewModel : ObservableObject
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(ScanCommand))]
     [NotifyCanExecuteChangedFor(nameof(StopCommand))]
+    [NotifyCanExecuteChangedFor(nameof(ExportHtmlCommand))]
     private bool _isScanning;
+
+    private string _lastScannedSubnet = string.Empty;
+    private DateTime _lastScannedAt;
 
     [ObservableProperty]
     [NotifyCanExecuteChangedFor(nameof(OpenWebCommand))]
     [NotifyCanExecuteChangedFor(nameof(OpenRdpCommand))]
+    [NotifyCanExecuteChangedFor(nameof(OpenSmbCommand))]
     [NotifyCanExecuteChangedFor(nameof(CopyIpCommand))]
     private ScanResult? _selectedResult;
 
@@ -62,6 +67,7 @@ public partial class MainViewModel : ObservableObject
         DefaultSubnet = ScanEngine.GetDefaultSubnet();
         SubnetText = DefaultSubnet;
         _ = InitializeOuiAsync();
+        Results.CollectionChanged += (_, _) => ExportHtmlCommand.NotifyCanExecuteChanged();
     }
 
     private async Task InitializeOuiAsync()
@@ -77,7 +83,9 @@ public partial class MainViewModel : ObservableObject
         }
     }
 
-    private bool CanScan() => !IsScanning;
+    private bool CanScan()    => !IsScanning;
+    private bool CanExport()  => !IsScanning && Results.Count > 0;
+    private bool CanOpenSmb() => SelectedResult?.HasSMB == true;
     private bool CanStop() => IsScanning;
     private bool CanOpenWeb() => SelectedResult?.HasWeb == true;
     private bool CanOpenRdp() => SelectedResult?.HasRDP == true;
@@ -98,6 +106,8 @@ public partial class MainViewModel : ObservableObject
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
 
+        _lastScannedSubnet = subnet;
+        _lastScannedAt = DateTime.Now;
         IsScanning = true;
         IsProgressIndeterminate = false;
         ProgressMaximum = 254;
@@ -170,6 +180,22 @@ public partial class MainViewModel : ObservableObject
             OpenUrl(r.WebUrl);
     }
 
+    [RelayCommand(CanExecute = nameof(CanOpenSmb))]
+    private void OpenSmb()
+    {
+        if (SelectedResult is not { } r) return;
+        try
+        {
+            if (OperatingSystem.IsWindows())
+                Process.Start(new ProcessStartInfo($@"\\{r.IP}") { UseShellExecute = true });
+            else if (OperatingSystem.IsMacOS())
+                Process.Start(new ProcessStartInfo("open", $"smb://{r.IP}") { UseShellExecute = false });
+            else
+                Process.Start(new ProcessStartInfo("xdg-open", $"smb://{r.IP}") { UseShellExecute = false });
+        }
+        catch { }
+    }
+
     [RelayCommand(CanExecute = nameof(CanOpenRdp))]
     private void OpenRdp()
     {
@@ -197,6 +223,41 @@ public partial class MainViewModel : ObservableObject
         {
             await clipboard.SetTextAsync(r.IP);
             StatusText = "Kopieret!";
+        }
+    }
+
+    [RelayCommand(CanExecute = nameof(CanExport))]
+    private async Task ExportHtmlAsync()
+    {
+        var window = (Application.Current?.ApplicationLifetime
+            as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        var topLevel = TopLevel.GetTopLevel(window);
+        if (topLevel == null) return;
+
+        var file = await topLevel.StorageProvider.SaveFilePickerAsync(new Avalonia.Platform.Storage.FilePickerSaveOptions
+        {
+            Title = "Gem scan som HTML",
+            SuggestedFileName = $"netscan_{_lastScannedSubnet.Replace('.', '-')}_{_lastScannedAt:yyyyMMdd_HHmm}.html",
+            DefaultExtension = "html",
+            FileTypeChoices =
+            [
+                new Avalonia.Platform.Storage.FilePickerFileType("HTML-fil") { Patterns = ["*.html"] }
+            ]
+        });
+
+        if (file == null) return;
+
+        try
+        {
+            var html = NetScan.Core.HtmlExporter.Generate(Results, _lastScannedSubnet, _lastScannedAt);
+            await using var stream = await file.OpenWriteAsync();
+            await using var writer = new System.IO.StreamWriter(stream, System.Text.Encoding.UTF8);
+            await writer.WriteAsync(html);
+            StatusText = "Eksporteret!";
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Eksport fejlede: {ex.Message}";
         }
     }
 

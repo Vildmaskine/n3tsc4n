@@ -5,7 +5,9 @@ namespace NetScan.Core;
 
 public class OuiLookup
 {
-    private static readonly string DbPath = Path.Combine(AppContext.BaseDirectory, "oui.csv");
+    private static readonly string DataDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "N3tSc4n");
+    private static readonly string DbPath = Path.Combine(DataDir, "oui.csv");
     private readonly Dictionary<string, string> _table = new(StringComparer.OrdinalIgnoreCase);
 
     public async Task InitializeAsync(IProgress<string>? progress = null)
@@ -22,6 +24,7 @@ public class OuiLookup
                 using var client = new HttpClient();
                 client.Timeout = TimeSpan.FromSeconds(30);
                 var bytes = await client.GetByteArrayAsync("https://standards-oui.ieee.org/oui/oui.csv");
+                Directory.CreateDirectory(DataDir);
                 await File.WriteAllBytesAsync(DbPath, bytes);
                 progress?.Report("OUI-database hentet — indlæser...");
             }
