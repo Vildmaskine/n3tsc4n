@@ -132,6 +132,8 @@ public partial class ScanEngine
 
         var portResults = await Task.WhenAll(portTasks);
         await dnsTask;
+
+        var openPorts = new List<(int port, string name)>();
         foreach (var (port, open) in portResults)
         {
             if (open && PortNames.TryGetValue(port, out var portName))
