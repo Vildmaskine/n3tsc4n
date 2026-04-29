@@ -44,88 +44,86 @@ public partial class ScanEngine
         IProgress<int> progress,
         [EnumeratorCancellation] CancellationToken ct)
     {
-        // Phase 1: ping all 254 hosts in parallel
-        int done = 0;
-        var pingTasks = Enumerable.Range(1, 254).Select(async i =>
-        {
-            var ip = $"{subnetBase}.{i}";
-            bool alive = await PingAsync(ip, ct);
-            progress.Report(Interlocked.Increment(ref done));
-            return (ip, alive);
-        }).ToList();
-
-        var pinged = await Task.WhenAll(pingTasks);
-        var aliveHosts = pinged.Where(r => r.alive).Select(r => r.ip).ToList();
-
-        ct.ThrowIfCancellationRequested();
-
-        // Parse ARP table once after ping sweep
-        var arpTable = await GetArpTableAsync();
-
-        // Phase 2: enrich each alive host via Channel
         var channel = Channel.CreateUnbounded<ScanResult>();
         var sem = new SemaphoreSlim(20, 20);
 
+        // ARP table is read after a short delay so responding hosts have had
+        // time to populate the kernel cache — responding LAN hosts answer in
+        // <10 ms so 600 ms is more than enough, and we don't have to wait for
+        // the full 1 s ping timeout of the 229 unreachable hosts.
+        var arpTableTask = Task.Run(async () =>
+        {
+            await Task.Delay(600, ct);
+            return await GetArpTableAsync();
+        }, ct);
+
         _ = Task.Run(async () =>
         {
-            var enrichTasks = aliveHosts.Select(async ip =>
+            int done = 0;
+            var enrichTasks = new System.Collections.Concurrent.ConcurrentBag<Task>();
+
+            // Ping all 254 hosts in parallel; as each one responds alive,
+            // immediately start enrichment without waiting for the rest.
+            var pingTasks = Enumerable.Range(1, 254).Select(async i =>
             {
+                var ip = $"{subnetBase}.{i}";
+                bool alive = await PingAsync(ip, ct);
+                progress.Report(Interlocked.Increment(ref done));
+
+                if (!alive) return;
+
                 await sem.WaitAsync(ct);
-                try
+                enrichTasks.Add(Task.Run(async () =>
                 {
-                    ct.ThrowIfCancellationRequested();
-                    var result = await EnrichAsync(ip, arpTable, ct);
-                    await channel.Writer.WriteAsync(result, ct);
-                }
-                catch (OperationCanceledException)
-                {
-                    // propagate cancellation
-                }
-                catch
-                {
-                    // individual host failure should not stop the scan
-                }
-                finally
-                {
-                    sem.Release();
-                }
+                    try
+                    {
+                        ct.ThrowIfCancellationRequested();
+                        var arpTable = await arpTableTask;
+                        var result = await EnrichAsync(ip, arpTable, ct);
+                        await channel.Writer.WriteAsync(result, ct);
+                    }
+                    catch (OperationCanceledException) { }
+                    catch { }
+                    finally { sem.Release(); }
+                }, ct));
             });
 
+            await Task.WhenAll(pingTasks);
             await Task.WhenAll(enrichTasks);
             channel.Writer.Complete();
         }, ct);
 
         await foreach (var result in channel.Reader.ReadAllAsync(ct))
-        {
             yield return result;
-        }
     }
 
     private async Task<ScanResult> EnrichAsync(string ip, Dictionary<string, string> arpTable, CancellationToken ct)
     {
         var result = new ScanResult { IP = ip };
 
-        // Hostname
-        try
-        {
-            var entry = await Dns.GetHostEntryAsync(ip, ct);
-            result.Hostname = entry.HostName;
-        }
-        catch
-        {
-            result.Hostname = ip;
-        }
-
-        // MAC from ARP table
+        // MAC + vendor (instant, from ARP table already fetched)
         arpTable.TryGetValue(ip, out var mac);
         result.MAC = mac ?? string.Empty;
-
-        // Vendor
         if (!string.IsNullOrEmpty(result.MAC))
             result.Vendor = _oui.Lookup(result.MAC);
 
-        // Port scan in parallel with 300ms timeout
-        var openPorts = new List<(int port, string name)>();
+        // DNS and port scan in parallel — DNS gets a hard 1.5 s timeout so a
+        // slow or missing reverse-DNS record doesn't stall the whole enrichment
+        var dnsTask = Task.Run(async () =>
+        {
+            try
+            {
+                using var dnsCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                dnsCts.CancelAfter(1500);
+                var entry = await Dns.GetHostEntryAsync(ip, dnsCts.Token);
+                result.Hostname = entry.HostName;
+            }
+            catch
+            {
+                result.Hostname = ip;
+            }
+        }, ct);
+
         var portTasks = PortNames.Keys.Select(async port =>
         {
             bool open = await IsPortOpenAsync(ip, port, ct);
@@ -133,6 +131,7 @@ public partial class ScanEngine
         });
 
         var portResults = await Task.WhenAll(portTasks);
+        await dnsTask;
         foreach (var (port, open) in portResults)
         {
             if (open && PortNames.TryGetValue(port, out var portName))
