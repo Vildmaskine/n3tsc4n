@@ -28,6 +28,9 @@ public partial class MainWindow : Window
         }
         catch { }
 
+        var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        VersionLabel.Text = $"v{ver?.Major}.{ver?.Minor}.{ver?.Build}";
+
         this.PropertyChanged += (_, e) =>
         {
             if (e.Property == WindowStateProperty)

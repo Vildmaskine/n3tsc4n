@@ -395,6 +395,12 @@
                            FontSize="14"
                            FontWeight="SemiBold"
                            VerticalAlignment="Center"/>
+                <TextBlock x:Name="VersionLabel"
+                           Foreground="#45475A"
+                           FontFamily="Consolas"
+                           FontSize="11"
+                           VerticalAlignment="Center"
+                           Margin="8,0,0,0"/>
             </StackPanel>
 
             <!-- Window controls (right) -->
@@ -405,12 +411,12 @@
                         Margin="0,0,10,0">
                 <Button x:Name="BtnMinimize"
                         Style="{StaticResource MinimizeButton}"
-                        ToolTip="Minimer"
+                        ToolTip="Minimize"
                         Click="BtnMinimize_Click"
                         Margin="0,0,8,0"/>
                 <Button x:Name="BtnMaximize"
                         Style="{StaticResource CaptionButton}"
-                        ToolTip="Maksimer"
+                        ToolTip="Maximize"
                         Click="BtnMaximize_Click"
                         Margin="0,0,8,0">
                     <Path x:Name="MaximizeIcon"
@@ -419,7 +425,7 @@
                 </Button>
                 <Button x:Name="BtnClose"
                         Style="{StaticResource CloseButton}"
-                        ToolTip="Luk"
+                        ToolTip="Close"
                         Click="BtnClose_Click"/>
             </StackPanel>
         </Grid>
@@ -455,11 +461,11 @@
                         <TextBlock.ToolTip>
                             <ToolTip Background="#313244" BorderBrush="#585B70" Foreground="#CDD6F4">
                                 <TextBlock MaxWidth="280" TextWrapping="Wrap" LineHeight="20">
-                                    <Run FontWeight="SemiBold" Foreground="#F9E2AF">Andet subnet end dit eget</Run>
+                                    <Run FontWeight="SemiBold" Foreground="#F9E2AF">Different subnet than your own</Run>
                                     <LineBreak/>
-                                    <Run>MAC-adresser og producent-info vil ikke være tilgængeligt — ARP virker kun inden for samme netværkssegment.</Run>
+                                    <Run>MAC addresses and vendor info will not be available — ARP only works within the same network segment.</Run>
                                     <LineBreak/>
-                                    <Run Foreground="#A6E3A1">Ping, porte og hostname fungerer stadig.</Run>
+                                    <Run Foreground="#A6E3A1">Ping, ports and hostname still work.</Run>
                                 </TextBlock>
                             </ToolTip>
                         </TextBlock.ToolTip>
@@ -491,17 +497,31 @@
                             IsEnabled="False"
                             Margin="6,0,0,0"
                             Click="BtnRDP_Click"/>
+                    <Button x:Name="BtnSMB"
+                            Content="🗂  SMB"
+                            Style="{StaticResource DarkButton}"
+                            IsEnabled="False"
+                            Margin="6,0,0,0"
+                            ToolTip="Open SMB share in file manager"
+                            Click="BtnSMB_Click"/>
                     <Button x:Name="BtnCopy"
                             Content="📋  IP"
                             Style="{StaticResource DarkButton}"
                             IsEnabled="False"
                             Margin="6,0,0,0"
                             Click="BtnCopy_Click"/>
+                    <Button x:Name="BtnExport"
+                            Content="💾  Export"
+                            Style="{StaticResource DarkButton}"
+                            IsEnabled="False"
+                            Margin="6,0,0,0"
+                            ToolTip="Save scan as HTML"
+                            Click="BtnExport_Click"/>
                 </StackPanel>
 
                 <!-- Middle: status -->
                 <TextBlock x:Name="StatusText"
-                           Text="Klar"
+                           Text="Ready"
                            Foreground="#585B70"
                            FontSize="12"
                            VerticalAlignment="Center"
@@ -558,7 +578,7 @@
 
         <!-- ══ Row 4: Footer ════════════════════════════════════════ -->
         <Border Grid.Row="4" Background="#181825" Padding="12,5">
-            <TextBlock Text="Dobbeltklik → åbn web"
+            <TextBlock Text="Double-click → open web"
                        Foreground="#585B70"
                        FontSize="11"
                        HorizontalAlignment="Center"/>

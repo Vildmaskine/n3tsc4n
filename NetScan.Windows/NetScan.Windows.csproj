@@ -8,7 +8,7 @@
     <AssemblyName>NetScan</AssemblyName>
     <RootNamespace>NetScan.Windows</RootNamespace>
     <ApplicationIcon>app.ico</ApplicationIcon>
-    <Version>1.0.7</Version>
+    <Version>1.0.8</Version>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Release'">

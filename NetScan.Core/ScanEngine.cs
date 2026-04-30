@@ -202,31 +202,43 @@ public partial class ScanEngine
     private static async Task<Dictionary<string, string>> GetArpTableAsync()
     {
         var table = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        try
+
+        // arp -a requires net-tools (not installed by default on Ubuntu/Zorin/Debian).
+        // ip neigh is always available via iproute2 on modern Linux. Try both.
+        var candidates = new (string cmd, string args)[]
         {
-            var psi = new ProcessStartInfo("arp", "-a")
-            {
-                RedirectStandardOutput = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            };
-            using var proc = Process.Start(psi);
-            if (proc == null) return table;
+            ("arp", "-a"),
+            ("ip",  "neigh show")
+        };
 
-            var output = await proc.StandardOutput.ReadToEndAsync();
-            await proc.WaitForExitAsync();
-
-            foreach (Match m in ArpLineRegex().Matches(output))
+        foreach (var (cmd, args) in candidates)
+        {
+            try
             {
-                var ip = m.Groups["ip"].Value;
-                var mac = m.Groups["mac"].Value.Replace("-", ":").ToUpperInvariant();
-                table.TryAdd(ip, mac);
+                var psi = new ProcessStartInfo(cmd, args)
+                {
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using var proc = Process.Start(psi);
+                if (proc == null) continue;
+
+                var output = await proc.StandardOutput.ReadToEndAsync();
+                await proc.WaitForExitAsync();
+
+                foreach (Match m in ArpLineRegex().Matches(output))
+                {
+                    var ip  = m.Groups["ip"].Value;
+                    var mac = m.Groups["mac"].Value.Replace("-", ":").ToUpperInvariant();
+                    table.TryAdd(ip, mac);
+                }
+
+                if (table.Count > 0) break;
             }
+            catch { }
         }
-        catch
-        {
-            // silently fail
-        }
+
         return table;
     }
 

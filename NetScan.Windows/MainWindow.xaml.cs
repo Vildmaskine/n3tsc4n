@@ -1,10 +1,12 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Input;
+using Microsoft.Win32;
 using NetScan.Core;
 
 namespace NetScan.Windows;
@@ -15,6 +17,7 @@ public partial class MainWindow : Window
     private readonly OuiLookup _oui = new();
     private readonly string _defaultSubnet;
     private CancellationTokenSource? _cts;
+    private DateTime _lastScannedAt;
 
     private static readonly Regex SubnetRegex =
         new(@"^\d{1,3}\.\d{1,3}\.\d{1,3}$", RegexOptions.Compiled);
@@ -22,6 +25,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        var ver = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version;
+        VersionLabel.Text = $"v{ver?.Major}.{ver?.Minor}.{ver?.Build}";
 
         // Detect and set default subnet
         _defaultSubnet = ScanEngine.GetDefaultSubnet();
@@ -64,7 +70,7 @@ public partial class MainWindow : Window
         }
         catch
         {
-            StatusText.Text = "Klar (OUI ikke tilgængelig)";
+            StatusText.Text = "Ready (OUI unavailable)";
         }
     }
 
@@ -74,8 +80,8 @@ public partial class MainWindow : Window
         if (!SubnetRegex.IsMatch(subnet))
         {
             MessageBox.Show(
-                "Indtast et gyldigt subnet, f.eks. 192.168.1",
-                "Ugyldigt subnet",
+                "Enter a valid subnet, e.g. 192.168.1",
+                "Invalid subnet",
                 MessageBoxButton.OK,
                 MessageBoxImage.Warning);
             return;
@@ -87,17 +93,21 @@ public partial class MainWindow : Window
         _cts = new CancellationTokenSource();
         var ct = _cts.Token;
 
-        BtnScan.IsEnabled = false;
-        BtnStop.IsEnabled = true;
-        BtnWeb.IsEnabled  = false;
-        BtnRDP.IsEnabled  = false;
-        BtnCopy.IsEnabled = false;
+        _lastScannedAt = DateTime.Now;
+
+        BtnScan.IsEnabled   = false;
+        BtnStop.IsEnabled   = true;
+        BtnWeb.IsEnabled    = false;
+        BtnRDP.IsEnabled    = false;
+        BtnSMB.IsEnabled    = false;
+        BtnCopy.IsEnabled   = false;
+        BtnExport.IsEnabled = false;
 
         // Phase 1: ping sweep — determinate progress
         PBar.IsIndeterminate = false;
         PBar.Maximum = 254;
         PBar.Value   = 0;
-        StatusText.Text = $"Scanner {subnet}.0/24...";
+        StatusText.Text = $"Scanning {subnet}.0/24...";
 
         var progress = new Progress<int>(v => PBar.Value = v);
 
@@ -115,7 +125,7 @@ public partial class MainWindow : Window
                     await Dispatcher.InvokeAsync(() =>
                     {
                         _results.Add(captured);
-                        StatusText.Text = $"Fundet: {found} enhed(er)...";
+                        StatusText.Text = $"Found: {found} device(s)...";
 
                         if (PBar.Value >= 254 && !PBar.IsIndeterminate)
                             PBar.IsIndeterminate = true;
@@ -127,7 +137,8 @@ public partial class MainWindow : Window
             {
                 PBar.IsIndeterminate = false;
                 PBar.Value = PBar.Maximum;
-                StatusText.Text = $"Færdig \u2014 {found} enhed(er)";
+                StatusText.Text     = $"Done — {found} device(s)";
+                BtnExport.IsEnabled = found > 0;
             });
         }
         catch (OperationCanceledException)
@@ -136,7 +147,8 @@ public partial class MainWindow : Window
             {
                 PBar.IsIndeterminate = false;
                 PBar.Value = 0;
-                StatusText.Text = "Stoppet";
+                StatusText.Text     = "Stopped";
+                BtnExport.IsEnabled = _results.Count > 0;
             });
         }
         catch (Exception ex)
@@ -145,7 +157,7 @@ public partial class MainWindow : Window
             {
                 PBar.IsIndeterminate = false;
                 PBar.Value = 0;
-                StatusText.Text = $"Fejl: {ex.Message}";
+                StatusText.Text = $"Error: {ex.Message}";
             });
         }
         finally
@@ -187,8 +199,9 @@ public partial class MainWindow : Window
     {
         var selected = DGrid.SelectedItem as ScanResult;
         BtnCopy.IsEnabled = selected != null;
-        BtnWeb.IsEnabled  = selected?.HasWeb  == true;
-        BtnRDP.IsEnabled  = selected?.HasRDP  == true;
+        BtnWeb.IsEnabled  = selected?.HasWeb == true;
+        BtnRDP.IsEnabled  = selected?.HasRDP == true;
+        BtnSMB.IsEnabled  = selected?.HasSMB == true;
     }
 
     private void BtnWeb_Click(object sender, RoutedEventArgs e)
@@ -207,7 +220,23 @@ public partial class MainWindow : Window
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Kunne ikke starte RDP: {ex.Message}", "Fejl",
+                MessageBox.Show($"Could not start RDP: {ex.Message}", "Error",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+    }
+
+    private void BtnSMB_Click(object sender, RoutedEventArgs e)
+    {
+        if (DGrid.SelectedItem is ScanResult r)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo($@"\\{r.IP}") { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not open SMB share: {ex.Message}", "Error",
                     MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
@@ -218,7 +247,34 @@ public partial class MainWindow : Window
         if (DGrid.SelectedItem is ScanResult r)
         {
             Clipboard.SetText(r.IP);
-            StatusText.Text = "Kopieret!";
+            StatusText.Text = "Copied!";
+        }
+    }
+
+    private void BtnExport_Click(object sender, RoutedEventArgs e)
+    {
+        if (_results.Count == 0) return;
+
+        var dlg = new SaveFileDialog
+        {
+            Title    = "Export scan",
+            Filter   = "HTML file|*.html",
+            FileName = $"N3tSc4n_{SubnetBox.Text.Trim()}.html"
+        };
+        if (dlg.ShowDialog() != true) return;
+
+        try
+        {
+            var html = HtmlExporter.Generate(_results, SubnetBox.Text.Trim(), _lastScannedAt);
+            File.WriteAllText(dlg.FileName, html, System.Text.Encoding.UTF8);
+            StatusText.Text = "Exported!";
+            Process.Start(new ProcessStartInfo(dlg.FileName) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"Export failed: {ex.Message}", "Error",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+            StatusText.Text = $"Export failed: {ex.Message}";
         }
     }
 
@@ -249,7 +305,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"Kunne ikke åbne browser: {ex.Message}", "Fejl",
+            MessageBox.Show($"Could not open browser: {ex.Message}", "Error",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
