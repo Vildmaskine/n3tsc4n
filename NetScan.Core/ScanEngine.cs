@@ -250,33 +250,57 @@ public partial class ScanEngine
     {
         try
         {
+            var candidates = new List<(string subnet, int score)>();
+
             foreach (var nic in NetworkInterface.GetAllNetworkInterfaces())
             {
-                if (nic.OperationalStatus != OperationalStatus.Up)
-                    continue;
-                if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback)
+                if (nic.OperationalStatus != OperationalStatus.Up) continue;
+                if (nic.NetworkInterfaceType == NetworkInterfaceType.Loopback) continue;
+
+                // Skip host-side virtual switch adapters specifically.
+                // We match precise names so the app still works when running *inside* a VM:
+                //   "vEthernet"                  → Hyper-V host virtual switch (never a VM guest adapter)
+                //   "VMware Virtual Ethernet"    → VMware host VMnet adapters (guest adapters are "VMXNET3" etc.)
+                //   "VirtualBox Host-Only"       → VirtualBox host-only adapters (guest adapters differ)
+                //   "WSL"                        → Windows Subsystem for Linux virtual NIC
+                var identity = nic.Name + " " + nic.Description;
+                if (identity.Contains("vEthernet",              StringComparison.OrdinalIgnoreCase) ||
+                    identity.Contains("VMware Virtual Ethernet", StringComparison.OrdinalIgnoreCase) ||
+                    identity.Contains("VirtualBox Host-Only",   StringComparison.OrdinalIgnoreCase) ||
+                    identity.Contains("WSL",                    StringComparison.OrdinalIgnoreCase))
                     continue;
 
-                foreach (var addr in nic.GetIPProperties().UnicastAddresses)
+                var props = nic.GetIPProperties();
+
+                // Adapters with a default gateway are real uplinks
+                int score = props.GatewayAddresses.Count > 0 ? 100 : 0;
+
+                // Prefer physical ethernet over Wi-Fi over anything else
+                score += nic.NetworkInterfaceType switch
                 {
-                    if (addr.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork)
-                        continue;
+                    NetworkInterfaceType.Ethernet or
+                    NetworkInterfaceType.GigabitEthernet => 20,
+                    NetworkInterfaceType.Wireless80211   => 10,
+                    _                                    => 1
+                };
 
+                foreach (var addr in props.UnicastAddresses)
+                {
+                    if (addr.Address.AddressFamily != System.Net.Sockets.AddressFamily.InterNetwork) continue;
                     var ip = addr.Address.ToString();
-                    // Skip APIPA (169.254.x.x)
-                    if (ip.StartsWith("169.254"))
-                        continue;
+                    if (ip.StartsWith("169.254")) continue; // APIPA
 
                     var parts = ip.Split('.');
                     if (parts.Length == 4)
-                        return $"{parts[0]}.{parts[1]}.{parts[2]}";
+                        candidates.Add(($"{parts[0]}.{parts[1]}.{parts[2]}", score));
                 }
             }
+
+            if (candidates.Count > 0)
+                return candidates.OrderByDescending(c => c.score).First().subnet;
         }
-        catch
-        {
-            // fall through to default
-        }
+        catch { }
+
         return "192.168.1";
     }
 }
